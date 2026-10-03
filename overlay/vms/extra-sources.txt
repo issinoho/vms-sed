@@ -1,0 +1,3 @@
+# VMS-only sources compiled into SED.EXE (paths relative to the tree root).
+vms/vms_crtl_init.c
+vms/vms_locale.c

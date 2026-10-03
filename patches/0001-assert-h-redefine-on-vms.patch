@@ -1,0 +1,25 @@
+Subject: assert.h: redefine assert on every inclusion on OpenVMS
+
+The VMS CRTL <assert.h> is include-guarded, so assert stays undefined after
+config.h's '#undef assert' (used when the compiler lacks static_assert).
+
+--- a/lib/assert.in.h	2026-10-02 20:51:31.474420531 +0100
++++ b/lib/assert.in.h	2026-10-02 20:51:31.493450578 +0100
+@@ -24,4 +24,17 @@
+ 
+ #@INCLUDE_NEXT@ @NEXT_ASSERT_H@
+ 
++/* The OpenVMS CRTL <assert.h> has an include guard, so it defines assert
++   only the first time it is included.  C requires every inclusion to
++   (re)define assert according to the current NDEBUG; config.h relies on
++   that after its own #undef assert.  Do it here.  */
++#ifdef __VMS
++# undef assert
++# ifdef NDEBUG
++#  define assert(expr) ((void) 0)
++# else
++#  define assert(expr) ((expr) ? (void) 0 : __assert (#expr, __FILE__, __LINE__))
++# endif
++#endif
++
+ /* The definition of static_assert is copied here.  */

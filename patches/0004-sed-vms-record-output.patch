@@ -1,0 +1,39 @@
+Subject: sed: on OpenVMS, write output with putc instead of fwrite
+
+For record-oriented output (terminal, log file, mailbox) the VMS CRTL turns
+each fwrite item into a record: ck_fwrite (text, 1, length) printed one
+character per line.  putc output is assembled into records at newlines.
+
+--- a/sed/utils.c	2026-10-03 15:14:30.932783042 +0100
++++ b/sed/utils.c	2026-10-03 15:14:30.949535260 +0100
+@@ -229,11 +229,30 @@
+ ck_fwrite (const void *ptr, idx_t size, idx_t nmemb, FILE *stream)
+ {
+   clearerr (stream);
++#ifdef __VMS
++  /* When the stream is record-oriented (a terminal, a log file, a mailbox),
++     the VMS CRTL writes every fwrite item as a separate record, so a line
++     written as fwrite (text, 1, length) came out one character per line.
++     putc output is assembled into records at newlines, and keeps NULs.  */
++  if (size)
++    {
++      char const *p = ptr;
++      idx_t n = size * nmemb;
++      for (; n > 0; n--)
++        if (putc ((unsigned char) *p++, stream) == EOF)
++          break;
++      if (n > 0)
++        panic (ngettext ("couldn't write %jd item to %s: %s",
++                         "couldn't write %jd items to %s: %s", nmemb),
++               nmemb, utils_fp_name (stream), strerror (errno));
++    }
++#else
+   if (size && fwrite (ptr, size, nmemb, stream) != nmemb)
+     panic (ngettext ("couldn't write %jd item to %s: %s",
+                      "couldn't write %jd items to %s: %s", nmemb),
+           nmemb, utils_fp_name (stream),
+           strerror (errno));
++#endif
+ }
+ 
+ /* Panic on failing fread */

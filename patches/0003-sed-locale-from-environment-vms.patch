@@ -1,0 +1,29 @@
+Subject: sed: on OpenVMS, also take the locale from environment variables
+
+The VMS CRTL's setlocale (LC_ALL, "") consults only logical names, so LC_ALL
+etc. set in the environment (e.g. by GNV bash) were ignored.  See vms/vms_locale.c.
+
+--- a/sed/sed.c	2026-10-03 15:14:30.932728799 +0100
++++ b/sed/sed.c	2026-10-03 15:14:30.949360048 +0100
+@@ -33,6 +33,9 @@
+ #include "xalloc.h"
+ 
+ #include "version-etc.h"
++#ifdef __VMS
++# include "vms_locale.h"
++#endif
+ 
+ #define AUTHORS \
+    _("Jay Fenlason"), \
+@@ -228,6 +231,11 @@
+ #if HAVE_SETLOCALE
+   /* Set locale according to user's wishes.  */
+   setlocale (LC_ALL, "");
++# ifdef __VMS
++  /* The CRTL's setlocale ignores LC_ALL etc. passed as environment
++     variables (e.g. by GNV bash) rather than logical names.  */
++  vms_locale_from_environment ();
++# endif
+ #endif
+   initialize_mbcs ();
+   init_localeinfo (&localeinfo);

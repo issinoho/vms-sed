@@ -1,0 +1,5 @@
+# Ordered list of patches applied to the upstream tree (one per line).
+0001-assert-h-redefine-on-vms.patch
+0002-getprogname-vms.patch
+0003-sed-locale-from-environment-vms.patch
+0004-sed-vms-record-output.patch

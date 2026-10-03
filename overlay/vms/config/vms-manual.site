@@ -1,0 +1,24 @@
+# Hand-settled configure answers for OpenVMS (VSI C, both IA64 and x86-64).
+#
+# Loaded after probed.site, so values here win.  Use this for checks the
+# automatic probes cannot answer: run-time behaviour tests (AC_RUN_IFELSE),
+# compiler-feature tests, and anything the probes got wrong.  Give a reason
+# for every entry.
+
+# x86 CRTL has pthread_sigmask, IA64 does not.  sed is built without threads,
+# so use sigprocmask on both for identical behaviour.
+ac_cv_func_pthread_sigmask=no
+
+# configure reads byte order out of an object file in cross mode, which
+# vmscc does not return.  IA64 (as used by VMS) and x86-64 are little-endian.
+ac_cv_c_bigendian=no
+
+# The CRTL's <string.h> provides mempcpy as a function-like macro (no linkable
+# symbol), so configure's link test says "no"; gnulib's replacement
+# declaration then collides with the macro.  Use the CRTL macro.
+ac_cv_func_mempcpy=yes
+gl_cv_onwards_func_mempcpy=yes
+
+# open() cannot open a directory by its Unix name on VMS (ENOENT); use
+# gnulib's dummy-fd fallback (a patch extends it to ENOENT).
+gl_cv_func_open_directory_works=no

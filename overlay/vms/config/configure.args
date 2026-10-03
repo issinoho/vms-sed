@@ -1,0 +1,8 @@
+# Options for the configure runs (one per line).
+--disable-nls
+--disable-threads
+--disable-dependency-tracking
+--disable-acl
+--disable-xattr
+--without-selinux
+--without-libsmack
