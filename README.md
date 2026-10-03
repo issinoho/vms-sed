@@ -154,6 +154,8 @@ vms-grep's README describes the machinery in detail.
 1. Finish the upstream test suite, then a PCSI kit (`ISSINOHO <base> SED`) and a release.
 2. A port to OpenVMS **Alpha**, alongside IA64 and x86-64.
 3. Next port: **GNU awk** (gawk), the same way ([vms-awk](https://github.com/issinoho/vms-awk)).
+4. Then **GNU wget**, the same way ([vms-wget](https://github.com/issinoho/vms-wget)).
+5. Then **curl**, the same way ([vms-curl](https://github.com/issinoho/vms-curl)).
 
 Earlier ports: [GNU grep](https://github.com/issinoho/vms-grep) and
 [PCRE2](https://github.com/issinoho/vms-pcre2).
