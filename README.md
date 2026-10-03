@@ -185,7 +185,8 @@ vms-grep's README describes the machinery in detail.
 ## Roadmap
 
 1. A port to OpenVMS **Alpha**, alongside IA64 and x86-64.
-2. Next port: **GNU awk** (gawk), the same way ([vms-awk](https://github.com/issinoho/vms-awk)).
+2. Next port: **GNU awk** (gawk) ([vms-awk](https://github.com/issinoho/vms-awk)). Released as
+   [v5.4.1-vms1](https://github.com/issinoho/vms-awk/releases/tag/v5.4.1-vms1), built with gawk's own upstream VMS port.
 3. Then **GNU wget**, the same way ([vms-wget](https://github.com/issinoho/vms-wget)).
 4. Then **curl**, the same way ([vms-curl](https://github.com/issinoho/vms-curl)). VSI ships
    a curl kit, but on VSI's slower release cycle; this port will follow curl's own releases
