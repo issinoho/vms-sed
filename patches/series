@@ -6,3 +6,9 @@
 0005-lib-gl-h-names-vms.patch
 0006-scratch-buffer-align-keyword-vms.patch
 0007-sed-program-name-vms.patch
+0008-tests-mbrtowc-locale-vms.patch
+0009-tests-cutmpdir-vms.patch
+0010-tests-coreutils-pm-bash-vms.patch
+0011-tests-compare-dev-null-vms.patch
+0012-mbrtowc-utf8-vms.patch
+0013-sed-close-temp-before-unlink-vms.patch

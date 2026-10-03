@@ -33,6 +33,22 @@ $(LIB) : $(LIB_OBJS)
 	IF F$SEARCH("$(MMS$TARGET)") .EQS. "" THEN LIBRARY/CREATE/OBJECT $(MMS$TARGET)
 	LIBRARY/REPLACE/OBJECT $(MMS$TARGET) $(LOBJ)*.OBJ
 
+! Helper programs the upstream test suite builds with "make check".
+CHECK_PROGRAMS : [.TESTSUITE]get-mb-cur-max.EXE, [.TESTSUITE]test-mbrtowc.EXE
+	@ CONTINUE
+
+[.TESTSUITE]get-mb-cur-max.EXE : $(OBJ)get-mb-cur-max.OBJ, $(LIB)
+	LINK/EXECUTABLE=$(MMS$TARGET)/NOMAP $(OBJ)get-mb-cur-max.OBJ, $(LIB)/LIBRARY
+
+[.TESTSUITE]test-mbrtowc.EXE : $(OBJ)test-mbrtowc.OBJ, $(OBJ)vms_locale.OBJ, $(LIB)
+	LINK/EXECUTABLE=$(MMS$TARGET)/NOMAP $(OBJ)test-mbrtowc.OBJ, $(OBJ)vms_locale.OBJ, $(LIB)/LIBRARY
+
+$(OBJ)get-mb-cur-max.OBJ : [.TESTSUITE]get-mb-cur-max.c
+	$(CC) $(CFLAGS) /OBJECT=$(MMS$TARGET) $(MMS$SOURCE)
+
+$(OBJ)test-mbrtowc.OBJ : [.TESTSUITE]test-mbrtowc.c
+	$(CC) $(CFLAGS) /OBJECT=$(MMS$TARGET) $(MMS$SOURCE)
+
 CLEAN :
 	IF F$SEARCH("$(LOBJ)*.*") .NES. "" THEN DELETE/NOLOG $(LOBJ)*.*;*
 	IF F$SEARCH("$(OBJ)*.OBJ") .NES. "" THEN DELETE/NOLOG $(OBJ)*.OBJ;*,*.OLB;*,*.MAP;*

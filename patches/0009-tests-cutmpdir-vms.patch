@@ -1,0 +1,46 @@
+Subject: tests: CuTmpdir on OpenVMS (VMS template, exit status)
+
+VSI Perl's File::Temp::tempdir wants a VMS directory specification; with
+the Unix template "misc.pl.tmp-XXXX" it fails with "The template must end
+with at least 4 'X' characters", so the perl tests failed before starting.
+
+Also, assigning $? = 0 in an END block makes VSI Perl exit with status 1,
+so every perl test failed; restore $? only if chmod_tree changed it.
+
+--- a/testsuite/CuTmpdir.pm	2026-10-03 16:46:25.308711727 +0100
++++ b/testsuite/CuTmpdir.pm	2026-10-03 17:18:27.297022570 +0100
+@@ -93,7 +93,21 @@
+     }
+ 
+   my $cleanup = $ENV{SAVE_TEMPS} ? 0 : 1;
+-  $dir = File::Temp::tempdir("$prefix.tmp-XXXX", CLEANUP => $cleanup );
++  my $template = "$prefix.tmp-XXXX";
++  # OpenVMS: File::Temp's tempdir wants a VMS directory specification
++  # ("dev:[dir.misc_pl_tmp-XXXX]"); given a Unix one it reports that the
++  # template "must end with at least 4 'X' characters".
++  if ($^O eq 'VMS')
++    {
++      require VMS::Filespec;
++      (my $base = $prefix) =~ s!.*/!!;
++      (my $parent = $prefix) =~ s![^/]*$!!;
++      $base =~ tr/./_/;
++      my $vparent = VMS::Filespec::vmspath ($parent);
++      $vparent =~ s/\]$//;
++      $template = "$vparent.${base}_tmp-XXXX]";
++    }
++  $dir = File::Temp::tempdir($template, CLEANUP => $cleanup );
+   chdir $dir
+     or warn "$ME: failed to chdir to $dir: $!\n";
+ 
+@@ -108,7 +122,10 @@
+ 
+   my $saved_errno = $?;
+   chmod_tree;
+-  $? = $saved_errno;
++  # OpenVMS: assigning $? = 0 in an END block makes perl exit with status 1,
++  # so restore it only if chmod_tree changed it.
++  $? = $saved_errno
++    if $? != $saved_errno;
+ }
+ 
+ 1;

@@ -1,0 +1,121 @@
+Subject: mbrtowc: decode UTF-8 in rpl_mbrtowc on OpenVMS
+
+The OpenVMS CRTL's mbrtowc keeps no state in its UTF-8 locales: a character
+given one byte per call is never completed (every byte returns (size_t)-2),
+and a lone byte that cannot start a character is reported as incomplete
+rather than invalid.  It also accepts surrogates.  sed reads delimiters one
+byte at a time (is_mb_char), so e.g. a 0xA6 delimiter was rejected as "not a
+single-byte character" (testsuite/mb-bad-delim).  In UTF-8 locales decode
+UTF-8 here, as glibc does, keeping pending bytes in *PS.
+
+--- a/lib/mbrtowc.c	2026-10-03 17:48:48.046744836 +0100
++++ b/lib/mbrtowc.c	2026-10-03 17:48:48.069096333 +0100
+@@ -78,6 +78,96 @@
+ # include "localcharset.h"
+ # include "streq-opt.h"
+ 
++# ifdef __VMS
++#  include <langinfo.h>
++#  include <string.h>
++
++/* The OpenVMS CRTL's mbrtowc is not restartable in its UTF-8 locales: it
++   keeps nothing in *PS, so a character given one byte per call is never
++   completed, and a lone byte that cannot start a character (0x80..0xC1,
++   0xF5..0xFF) is reported as incomplete rather than invalid.  It also
++   accepts surrogates.  In UTF-8 locales rpl_mbrtowc therefore decodes UTF-8
++   itself, as glibc does, keeping up to three pending bytes in *PS: byte 0
++   is their count, bytes 1..3 the bytes.  The CRTL's mbsinit reports any
++   non-zero byte of the state as "not initial", so it sees them.  */
++
++static int
++vms_utf8_locale (void)
++{
++  return MB_CUR_MAX > 1 && strcmp (nl_langinfo (CODESET), "UTF-8") == 0;
++}
++
++static size_t
++vms_utf8_mbrtowc (wchar_t *pwc, const char *s, size_t n, mbstate_t *ps)
++{
++  static mbstate_t internal;
++  unsigned char *st = (unsigned char *) (ps != NULL ? ps : &internal);
++  unsigned char buf[4];
++  size_t have, need, used;
++  unsigned char c0;
++  wchar_t wc;
++
++  if (s == NULL)
++    {
++      memset (st, 0, sizeof (mbstate_t));
++      return 0;
++    }
++  if (n == 0)
++    return (size_t) -2;
++  have = st[0];
++  if (have > 3)
++    {
++      errno = EINVAL;
++      return (size_t) -1;
++    }
++  memcpy (buf, st + 1, have);
++  c0 = have ? buf[0] : (unsigned char) s[0];
++  if (c0 < 0x80)
++    {
++      *pwc = c0;
++      return c0 != 0;
++    }
++  need = c0 < 0xC2 ? 0 : c0 < 0xE0 ? 2 : c0 < 0xF0 ? 3 : c0 < 0xF5 ? 4 : 0;
++  if (need == 0)
++    goto invalid;
++  for (used = 0; have < need && used < n; used++)
++    {
++      unsigned char c = s[used];
++      if (have > 0)
++        {
++          if ((c & 0xC0) != 0x80)
++            goto invalid;
++          /* Overlong forms, surrogates and values above U+10FFFF.  */
++          if (have == 1
++              && ((c0 == 0xE0 && c < 0xA0) || (c0 == 0xED && c > 0x9F)
++                  || (c0 == 0xF0 && c < 0x90) || (c0 == 0xF4 && c > 0x8F)))
++            goto invalid;
++        }
++      buf[have++] = c;
++    }
++  if (have < need)
++    {
++      st[0] = have;
++      memcpy (st + 1, buf, have);
++      return (size_t) -2;
++    }
++  if (need == 2)
++    wc = ((buf[0] & 0x1F) << 6) | (buf[1] & 0x3F);
++  else if (need == 3)
++    wc = ((buf[0] & 0x0F) << 12) | ((buf[1] & 0x3F) << 6) | (buf[2] & 0x3F);
++  else
++    wc = ((buf[0] & 0x07) << 18) | ((buf[1] & 0x3F) << 12)
++         | ((buf[2] & 0x3F) << 6) | (buf[3] & 0x3F);
++  memset (st, 0, sizeof (mbstate_t));
++  *pwc = wc;
++  return used;
++
++ invalid:
++  errno = EILSEQ;
++  return (size_t) -1;
++}
++# endif
++
+ # if MBRTOWC_IN_C_LOCALE_MAYBE_EILSEQ
+ #  include "hard-locale.h"
+ #  include <locale.h>
+@@ -246,6 +336,11 @@
+   if (! pwc)
+     pwc = &wc;
+ 
++# ifdef __VMS
++  if (vms_utf8_locale ())
++    return vms_utf8_mbrtowc (pwc, s, n, ps);
++# endif
++
+ # if MBRTOWC_RETVAL_BUG
+   {
+     static mbstate_t internal_state;

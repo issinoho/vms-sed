@@ -1,0 +1,5 @@
+# Upstream tests not run on OpenVMS: <test-name> <reason>
+testsuite/obinary.sh	hangs under GNV: its first step, printf a | sed cb (a pipe whose data has no final newline), never sees end of file; natively through a DCL PIPE sed handles that input. The test is about Windows O_TEXT, which does not apply
+testsuite/panic-tests.sh	needs mkfifo (its later checks read from a FIFO); VMS has no FIFOs. The checks before that point pass
+testsuite/read-error-stale-errno.sh	needs mkfifo; VMS has no FIFOs
+testsuite/stdin.sh	hangs under GNV: two seds in a subshell share one stdin, read through a pipe ((sed d; sed G) < file, cat | (...)); VMS processes do not share file offsets, as for unbuffered.sh

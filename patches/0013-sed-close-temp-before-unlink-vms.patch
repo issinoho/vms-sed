@@ -1,0 +1,56 @@
+Subject: sed: on OpenVMS, close the in-place temporary before removing it
+
+When sed exits with an error during an in-place edit, the atexit cleanup
+unlinks the temporary file while its stream is still open.  POSIX allows
+that; OpenVMS cannot delete an open file, so the temporary (e.g.
+sed007ecb.) was left behind (testsuite/temp-file-cleanup).  Close the
+stream first.
+
+--- a/sed/utils.c	2026-10-03 19:14:29.752243843 +0100
++++ b/sed/utils.c	2026-10-03 19:14:29.777830985 +0100
+@@ -159,12 +159,24 @@
+    of the temporary that we'll have to unlink via an atexit-
+    registered cleanup function.  */
+ static char const *G_file_to_unlink;
++#ifdef __VMS
++/* OpenVMS cannot delete a file that is still open, so the temporary's
++   stream is closed before the unlink.  */
++static FILE *G_file_to_close;
++#endif
+ 
+ void
+ remove_cleanup_file (void)
+ {
+   if (G_file_to_unlink)
+-    unlink (G_file_to_unlink);
++    {
++#ifdef __VMS
++      if (G_file_to_close)
++        fclose (G_file_to_close);
++      G_file_to_close = NULL;
++#endif
++      unlink (G_file_to_unlink);
++    }
+ }
+ 
+ /* Note that FILE must be removed upon exit.  */
+@@ -179,6 +191,9 @@
+ cancel_cleanup (void)
+ {
+   G_file_to_unlink = NULL;
++#ifdef __VMS
++  G_file_to_close = NULL;
++#endif
+ }
+ 
+ FILE *
+@@ -221,6 +236,9 @@
+            strerror (err));
+ 
+   register_open_file (fp, template);
++#ifdef __VMS
++  G_file_to_close = fp;
++#endif
+   return fp;
+ }
+ 

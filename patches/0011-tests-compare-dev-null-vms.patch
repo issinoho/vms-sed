@@ -1,0 +1,27 @@
+Subject: tests: compare_ handles /dev/null without diff on OpenVMS
+
+GNV's diff cannot open /dev/null ("diff: /dev/null: no such file or
+directory"), and sed's tests call compare_ directly rather than compare,
+which would avoid diff for /dev/null.
+
+--- a/init.cfg	2026-10-03 17:44:52.585655658 +0100
++++ b/init.cfg	2026-10-03 17:44:52.590688170 +0100
+@@ -196,3 +196,18 @@
+   sed -i '/warning: failed to set default file creation context/d' "$@" \
+     || framework_failure_
+ }
++
++# OpenVMS: GNV's diff cannot open /dev/null, and sed's tests call compare_
++# directly (not compare, which handles /dev/null without diff).
++case $(uname -s 2>/dev/null) in
++  OpenVMS)
++    compare_ ()
++    {
++      compare_dev_null_ "$@"
++      case $? in
++        0) return 0 ;;
++        1) return 1 ;;
++      esac
++      LC_ALL=C diff -u "$@"
++    } ;;
++esac

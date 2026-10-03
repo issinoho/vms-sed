@@ -1,0 +1,47 @@
+Subject: tests: Coreutils.pm runs test commands with GNV bash on OpenVMS
+
+Perl's system runs a command string with DCL, which has no shell syntax
+('quoting', VAR=val, 2> redirection) and no "sed" verb, so every perl test
+case failed with %DCL-W-IVVERB.  Write the command to a script and run it
+with GNV bash instead.  That bash does not inherit the environment, so the
+script exports PATH and the locale variables first; otherwise GNV's own,
+much older sed would be tested.
+
+--- a/testsuite/Coreutils.pm	2026-10-03 16:51:19.650085458 +0100
++++ b/testsuite/Coreutils.pm	2026-10-03 17:03:15.180648553 +0100
+@@ -475,7 +475,34 @@
+         }
+ 
+       warn "Running command: '$cmd_str'\n" if $debug;
+-      my $rc = 0xffff & system $cmd_str;
++      my $rc;
++      if ($^O eq 'VMS')
++        {
++          # Perl's system runs a command string with DCL, which knows no
++          # shell syntax ('quoting', VAR=val prefixes, 2> redirection).
++          # Run it with GNV bash (the DCL symbol BASH) from a script.  That
++          # bash does not inherit this environment, so the script sets the
++          # variables the tests rely on.
++          my $script = "$test_name.vms-cmd.sh";
++          open my $sh, '>', $script
++            or die "$program_name: $script: $!\n";
++          foreach my $var (qw (PATH LC_ALL LC_CTYPE LC_COLLATE LC_MESSAGES
++                               LANG LANGUAGE TMPDIR POSIXLY_CORRECT COLS))
++            {
++              print $sh "export $var=", _shell_quote ($ENV{$var}), "\n"
++                if defined $ENV{$var};
++              print $sh "unset $var\n"
++                if !defined $ENV{$var};
++            }
++          print $sh "$cmd_str\n";
++          close $sh;
++          $rc = 0xffff & system "bash $script";
++          unlink $script;
++        }
++      else
++        {
++          $rc = 0xffff & system $cmd_str;
++        }
+ 
+       # Restore any environment setting we changed via a deletion.
+       foreach my $env_sym (keys %pushed_env)

@@ -1,0 +1,10 @@
+# Upstream tests expected to fail under GNV for reasons outside sed: <test-name> <reason>
+testsuite/misc.pl	10 cases whose input or expected output has no final newline or uses NULs: the GNV-created files gain a newline per write; all 10 pass natively via VSI Perl with exact bytes
+testsuite/nulldata.sh	the -z cases' input and expected files are written by GNV printf, which ends every write with a newline; the three -z cases pass natively with exact bytes
+testsuite/compile-errors.sh	one case (s-opt-r): the script "s/./x/\r" is written by GNV printf, whose record loses the bare CR, so sed sees a valid command; natively sed rejects it with "unknown option to 's'" as expected
+testsuite/execute-tests.sh	sed's e command and s///e run their command through the C library's system()/popen(), which on OpenVMS is DCL, not /bin/sh
+testsuite/in-place-suffix-backup.sh	compares the exact strerror text: the VMS C runtime says "no such file or directory" where glibc says "No such file or directory"
+testsuite/posix-mode-s.sh	one check (s///e without --posix) runs its command through system(), which on OpenVMS is DCL, not /bin/sh
+testsuite/sandbox.sh	one check runs the e command without --sandbox, through system(), which on OpenVMS is DCL, not /bin/sh
+testsuite/8to7.sh	its input is built from several printf writes per line, and GNV printf ends every write with a newline, so the lines are split; natively the l output is byte-exact (669 bytes)
+testsuite/eval.sh	the e command and s///e run their commands through system(), which on OpenVMS is DCL, not /bin/sh

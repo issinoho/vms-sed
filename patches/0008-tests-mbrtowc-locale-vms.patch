@@ -1,0 +1,28 @@
+Subject: tests: test-mbrtowc takes the locale from the environment on OpenVMS
+
+init.cfg runs it as LC_ALL=<locale> test-mbrtowc, but the VMS CRTL's
+setlocale (LC_ALL, "") reads only logical names (see vms/vms_locale.c).
+
+--- a/testsuite/test-mbrtowc.c	2026-10-03 16:40:22.966952930 +0100
++++ b/testsuite/test-mbrtowc.c	2026-10-03 16:40:23.083843462 +0100
+@@ -124,6 +124,9 @@
+ #include <wchar.h>
+ 
+ #include "progname.h"
++#ifdef __VMS
++# include "vms_locale.h"
++#endif
+ 
+ /* stub replacement for non-standard err(3) */
+ static int
+@@ -142,6 +145,10 @@
+   set_program_name (argv[0]);
+   if (!setlocale (LC_ALL, ""))
+     die ("failed to set locale");
++#ifdef __VMS
++  /* The CRTL's setlocale ignores LC_ALL passed in the environment.  */
++  vms_locale_from_environment ();
++#endif
+ 
+   while ((c = getchar ()) != EOF)
+     {
