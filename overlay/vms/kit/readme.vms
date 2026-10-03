@@ -1,0 +1,58 @@
+GNU sed for OpenVMS
+===================
+
+This is GNU sed @VERSION@ built natively for OpenVMS @ARCH@, from the
+unmodified GNU release plus the patches in the vms-sed project:
+
+    https://github.com/issinoho/vms-sed
+
+Kit version: @KITVERSION@.  GNU sed is free software under the GNU General
+Public License, version 3 or later; see COPYING.  The full manual is in
+SED.TXT (plain text) and sed.1 (man page source).
+
+Setting up
+----------
+The kit installs SED$STARTUP.COM into SYS$STARTUP and runs it once.  To
+define SED$ROOT at every boot, the system manager adds this line to
+SYS$MANAGER:SYSTARTUP_VMS.COM:
+
+    $ @SYS$STARTUP:SED$STARTUP.COM
+
+Users then define the sed command in LOGIN.COM:
+
+    $ @SED$ROOT:[000000]SED$SETUP.COM
+
+Things that differ from Unix
+----------------------------
+- Quote the script.  With the default PARSE_STYLE=TRADITIONAL, DCL
+  upper-cases an unquoted command line and the C run-time library then
+  lower-cases it.  Put scripts and upper-case options in quotes:
+      $ sed "s/Foo/Bar/g" file.txt
+      $ sed "-E" "s/(a|b)+/x/" file.txt
+  or use SET PROCESS/PARSE_STYLE=EXTENDED.
+
+- In-place editing.  sed -i "s/a/b/" file.txt writes a new version of the
+  file and leaves the original as the previous version (PURGE removes it).
+  sed -i.bak renames the original to file.txt.bak (file^.txt.bak on an ODS-5
+  disk) and writes the edited file under the original name.  The rewritten
+  file is Stream_LF, whatever the record format of the original.
+
+- The e command (and s///e) runs its command through the C library's
+  system(), which on OpenVMS is DCL: sed "1e SHOW TIME" runs a DCL command.
+
+- Exit status.  sed exits with 0 (success), 1 (invalid command or option),
+  2 (an input file could not be opened), 4 (I/O error), or the code given
+  to q or Q.  DCL sees these as C-facility condition values; the code is
+      $ code = ($STATUS .AND. %X7F8) / 8
+
+- File names are reported in Unix form (dir/file.txt).
+
+- Locales.  Choose one with a logical name or environment variable, e.g.
+      $ DEFINE LC_ALL "UTF8-20"
+  VMS has no "en_US.UTF-8"; use the generic UTF8-xx locales (see
+  SYS$I18N_LOCALE:).  IA64 ships only UTF8-20, which covers characters of
+  up to three bytes.
+
+- sed sets several C run-time features at start-up (Unix file names, case
+  preservation, ...).  Defining the corresponding DECC$ logical name
+  yourself overrides sed's choice.

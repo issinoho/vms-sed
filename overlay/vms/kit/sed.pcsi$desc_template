@@ -1,0 +1,30 @@
+--
+-- PCSI product description for GNU sed on OpenVMS.
+-- Template: tools/prepare.sh substitutes @PRODUCER@, @BASE@ and @PCSIVERSION@.
+--
+product @PRODUCER@ @BASE@ SED @PCSIVERSION@ full ;
+
+    information RELEASE_NOTES phase after ;
+
+    directory [SED] ;
+    directory [SED.BIN] ;
+    directory [SED.DOC] ;
+
+    file [SED.BIN]SED.EXE ;
+    file [SYS$STARTUP]SED$STARTUP.COM ;
+    file [SED]SED$SETUP.COM ;
+    file [SED.DOC]README.VMS ;
+    file [SED.DOC]COPYING. ;
+    file [SED.DOC]NEWS. ;
+    file [SED.DOC]SED.TXT ;
+    file [SED.DOC]SED.1 ;
+
+    -- Define SED$ROOT now and print the post-installation tasks (PCSI shows
+    -- only the title of an information message unless /HELP is given).
+    execute postinstall "@PCSI$DESTINATION:[SYS$STARTUP]SED$STARTUP.COM INSTALL" interactive ;
+    -- On removal, deassign SED$ROOT.
+    execute install "CONTINUE" remove "@PCSI$DESTINATION:[SYS$STARTUP]SED$STARTUP.COM REMOVE" ;
+
+    information POST_INSTALL phase after ;
+
+end product ;

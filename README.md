@@ -16,17 +16,42 @@ files, and generates the configuration for VSI C.
 
 ## Status
 
-Work in progress: sed builds and passes its smoke test on both architectures, and the upstream
-test suite runs under GNV with no unexpected failures. A PCSI kit and a release follow.
 
 | | IA64 (OpenVMS V8.4-2L3, VSI C 7.4) | x86-64 (OpenVMS E9.2-4, VSI C 7.7) |
 |---|---|---|
 | Builds with MMS | yes | yes |
 | DCL smoke test | 25/25 | 25/25 |
 | Upstream test suite (75 tests) | not runnable (GNV too old) | 50 pass, 0 unexpected failures |
-| PCSI kit | planned | planned |
+| PCSI kit ([v4.10-vms1](https://github.com/issinoho/vms-sed/releases/tag/v4.10-vms1)) | `ISSINOHO-I64VMS-SED-V0410-1-1.PCSI` | `ISSINOHO-X86VMS-SED-V0410-1-1.PCSI` |
 
 See [docs/TESTING.md](docs/TESTING.md) for every skipped and expected-to-fail test.
+
+## Installing the kit
+
+Download the kit for your architecture from the
+[latest release](https://github.com/issinoho/vms-sed/releases/latest) and check it against
+the release's `SHA256SUMS`. The kits are PCSI files, named
+`ISSINOHO-<base>-SED-V0410-1-1.PCSI` (sed 4.10, VMS patch level 1), where `<base>` is
+`I64VMS` or `X86VMS`. A kit downloaded through a non-VMS system arrives without its record
+format, so restore that first, then install it:
+
+```
+$ SET FILE/ATTRIBUTE=(RFM:FIX,LRL:8192,MRS:8192,RAT:NONE) ISSINOHO-*-SED-V0410-1-1.PCSI
+$ PRODUCT INSTALL SED /PRODUCER=ISSINOHO /SOURCE=dev:[dir]
+```
+
+The kits have been tested by installing, verifying and removing them on both architectures.
+They are not signed, so PCSI notes that it cannot validate a signature. The kit installs
+`[SED.BIN]SED.EXE`, the documentation in `[SED.DOC]` (`README.VMS`, a plain-text manual
+`SED.TXT`, `SED.1`, `NEWS`, `COPYING`) and two procedures:
+
+- `SYS$STARTUP:SED$STARTUP.COM` defines `SED$ROOT`. It runs once at installation and prints
+  the post-installation tasks. To run it at every boot, add
+  `$ @SYS$STARTUP:SED$STARTUP.COM` to `SYS$MANAGER:SYSTARTUP_VMS.COM`.
+- `[SED]SED$SETUP.COM` defines the `sed` command for a user (add it to `LOGIN.COM`):
+  `$ @SED$ROOT:[000000]SED$SETUP.COM`.
+
+Removing the product (`PRODUCT REMOVE SED`) deassigns `SED$ROOT`.
 
 ## Using sed on OpenVMS
 
@@ -126,6 +151,7 @@ too, for the test suite). Then, on VMS:
 $ SET DEFAULT dev:[dir.SED-4_10]
 $ @[.VMS]BUILD                    ! -> [.BIN_IA64]SED.EXE or [.BIN_X86_64]SED.EXE
 $ @[.VMS]TEST_SMOKE               ! quick functional test (25 checks)
+$ @[.VMS.KIT]MAKE_KIT             ! PCSI kit -> [.KIT_<arch>]
 ```
 
 `@[.VMS]BUILD ALL KEEP_GOING` carries on past compile errors so that one run reports them
@@ -142,6 +168,8 @@ the same file works for every project. Then:
 tools/build.sh ia64         # upload changed files, MMS build on the node
 tools/test.sh ia64          # DCL smoke test
 tools/gnvtest.sh x86        # upstream test suite under GNV
+tools/kit.sh ia64           # build, then make the PCSI kit -> out/kits/
+tools/installcheck.sh ia64  # install the kit, verify, smoke-test, remove (changes the system)
 ```
 
 ## How configuration works
@@ -156,11 +184,10 @@ vms-grep's README describes the machinery in detail.
 
 ## Roadmap
 
-1. Finish the upstream test suite, then a PCSI kit (`ISSINOHO <base> SED`) and a release.
-2. A port to OpenVMS **Alpha**, alongside IA64 and x86-64.
-3. Next port: **GNU awk** (gawk), the same way ([vms-awk](https://github.com/issinoho/vms-awk)).
-4. Then **GNU wget**, the same way ([vms-wget](https://github.com/issinoho/vms-wget)).
-5. Then **curl**, the same way ([vms-curl](https://github.com/issinoho/vms-curl)). VSI ships
+1. A port to OpenVMS **Alpha**, alongside IA64 and x86-64.
+2. Next port: **GNU awk** (gawk), the same way ([vms-awk](https://github.com/issinoho/vms-awk)).
+3. Then **GNU wget**, the same way ([vms-wget](https://github.com/issinoho/vms-wget)).
+4. Then **curl**, the same way ([vms-curl](https://github.com/issinoho/vms-curl)). VSI ships
    a curl kit, but on VSI's slower release cycle; this port will follow curl's own releases
    in lock-step.
 
