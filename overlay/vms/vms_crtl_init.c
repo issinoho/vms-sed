@@ -10,6 +10,9 @@
 #include <config.h>
 
 #include <stdlib.h>
+/* gnulib may replace mkdir (#define mkdir rpl_mkdir); <unixlib.h> then
+   redeclares it with the CRTL's variadic prototype.  Nothing here uses it.  */
+#undef mkdir
 #include <unixlib.h>
 
 struct feature { const char *name; int value; };

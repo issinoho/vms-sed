@@ -1,0 +1,30 @@
+Subject: sed: on OpenVMS, name the program "sed", not the image path
+
+argv[0] is the full image file specification, so messages read
+"/DKA0/.../SED.EXE: -e expression #1 ..." and --version printed the path.
+Use getprogname (VMS implementation in patch 0002), which gives "sed".
+
+--- a/sed/sed.c	2026-10-03 16:28:25.416111571 +0100
++++ b/sed/sed.c	2026-10-03 16:28:25.464389998 +0100
+@@ -34,6 +34,7 @@
+ 
+ #include "version-etc.h"
+ #ifdef __VMS
++# include "getprogname.h"
+ # include "vms_locale.h"
+ #endif
+ 
+@@ -226,7 +227,13 @@
+   int return_code;
+   const char *cols = getenv ("COLS");
+ 
++#ifdef __VMS
++  /* argv[0] is the full image file specification; messages and --version
++     should say "sed", as on other systems.  */
++  set_program_name (getprogname ());
++#else
+   set_program_name (argv[0]);
++#endif
+   initialize_main (&argc, &argv);
+ #if HAVE_SETLOCALE
+   /* Set locale according to user's wishes.  */

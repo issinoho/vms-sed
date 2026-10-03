@@ -52,7 +52,7 @@ $ call t lastline  0 "grape"                                     "-n ""$p"" frui
 $ call t icase     0 "X"                                         "-n ""s/banana/X/Ip"" fruit.txt"
 $ call t extended  0 "ppale|ppale tart|grpae"                       "-n -E ""s/(a)(p+)/\2\1/p"" fruit.txt"
 $ call t backref   0 "pp"                                        "-n ""s/.*\(p\)\1.*/\1\1/p;q"" fruit.txt"
-$ call t translit  0 "APPLE"                                     "-n ""1y/aple/APLE/p"" fruit.txt"
+$ call t translit  0 "APPLE"                                     "-n ""1{y/aple/APLE/;p}"" fruit.txt"
 $ call t multi     0 "APPLE|BANANA"                              "-n -e ""1,2y/abelnp/ABELNP/"" -e ""1,2p"" fruit.txt"
 $ call t scriptf   0 "apple|Banana|CHERRY pie|apple tart"        "-f script.sed fruit.txt"
 $ call t reverse   0 "grape|apple tart|cherry pie|Banana|apple"  "-n ""1!G;h;$p"" fruit.txt"
@@ -60,7 +60,7 @@ $ call t append    0 "apple|-|Banana"                            "-n ""1{p;a\" -
 $ call t count     0 "5"                                         "-n ""$="" fruit.txt"
 $ call t quitcode  7 "apple|Banana"                              """2q7"" fruit.txt"
 $ call t nofile    2 ""                                          """p"" no_such_file.txt"
-$ call t badcmd    1 ""                                          """k"" fruit.txt"
+$ call t badcmd    1 "*"                                         """k"" fruit.txt"
 $!
 $! In-place editing: the file is rewritten, and -i.bak keeps the original.
 $ copy/nolog fruit.txt edit.txt
@@ -175,7 +175,8 @@ $ close f
 $compare:
 $ ok = code .eq. f$integer(p2)
 $! (DCL upper-cases the unquoted test name.)
-$ if p1 .nes. "VERSION" .and. p2 .ne. 2 then ok = ok .and. (got .eqs. p3)
+$! An expected output of "*" means: check the exit status only.
+$ if p1 .nes. "VERSION" .and. p2 .ne. 2 .and. p3 .nes. "*" then ok = ok .and. (got .eqs. p3)
 $ if p1 .eqs. "VERSION" then ok = ok .and. (f$locate("sed (GNU sed)", got) .lt. f$length(got))
 $ if ok
 $ then

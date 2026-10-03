@@ -3,3 +3,6 @@
 0002-getprogname-vms.patch
 0003-sed-locale-from-environment-vms.patch
 0004-sed-vms-record-output.patch
+0005-lib-gl-h-names-vms.patch
+0006-scratch-buffer-align-keyword-vms.patch
+0007-sed-program-name-vms.patch

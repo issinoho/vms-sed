@@ -1,0 +1,49 @@
+Subject: lib: on OpenVMS, include the generated *.gl.h headers as *_gl.h
+
+VSI C cannot #include a file whose name has two dots (on ODS-5 the file is
+scratch_buffer^.gl.h).  tools/prepare.sh renames the generated headers to
+*_gl.h; include them by that name on VMS.
+
+--- a/lib/dynarray.h	2026-10-03 16:22:27.078052959 +0100
++++ b/lib/dynarray.h	2026-10-03 16:22:27.119701557 +0100
+@@ -265,14 +265,22 @@
+ 
+ /* Define auxiliary structs and declare auxiliary functions, common to all
+    instantiations of dynarray.  */
+-# include <malloc/dynarray.gl.h>
++# ifdef __VMS
++#  include <malloc/dynarray_gl.h>
++# else
++#  include <malloc/dynarray.gl.h>
++# endif
+ 
+ /* Define the instantiation, specified through
+      DYNARRAY_STRUCT
+      DYNARRAY_ELEMENT
+      DYNARRAY_PREFIX
+    etc.  */
+-# include <malloc/dynarray-skeleton.gl.h>
++# ifdef __VMS
++#  include <malloc/dynarray-skeleton_gl.h>
++# else
++#  include <malloc/dynarray-skeleton.gl.h>
++# endif
+ 
+ #else
+ 
+--- a/lib/scratch_buffer.h	2026-10-03 16:22:27.077997531 +0100
++++ b/lib/scratch_buffer.h	2026-10-03 16:22:27.119448876 +0100
+@@ -112,6 +112,12 @@
+ # define _GL_UNLIKELY(cond) __builtin_expect ((cond), 0)
+ #endif
+ 
+-#include <malloc/scratch_buffer.gl.h>
++#ifdef __VMS
++/* VSI C cannot #include a file name with two dots; prepare.sh renames the
++   generated *.gl.h files to *_gl.h.  */
++# include <malloc/scratch_buffer_gl.h>
++#else
++# include <malloc/scratch_buffer.gl.h>
++#endif
+ 
+ #endif /* _GL_SCRATCH_BUFFER_H */

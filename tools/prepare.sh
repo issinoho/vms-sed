@@ -88,15 +88,25 @@ step "generating $(echo $built | wc -w) built sources"
 mkdir -p "$hostcfg/sed"
 make -s -C "$hostcfg" $built >/dev/null
 for h in $built; do
+    h=${h#\$(top_srcdir)/}
+    # Some (.version) are made in the source tree itself.
+    [ -e "$hostcfg/$h" ] || { [ -e "$stage/$h" ] && continue; die "built source $h not generated"; }
     mkdir -p "$stage/$(dirname "$h")"
     cp "$hostcfg/$h" "$stage/$h"
 done
 cp "$hostcfg/config.h" "$stage/config.h"
+# VSI C cannot #include a name with two dots: generated lib/malloc/*.gl.h
+# become *_gl.h (patch 0005 includes them by that name on VMS).
+for f in "$stage"/lib/malloc/*.gl.h; do
+    [ -e "$f" ] || continue
+    sed 's|<malloc/\([a-z_-]*\)\.gl\.h>|<malloc/\1_gl.h>|g' "$f" > "${f%.gl.h}_gl.h"
+    rm "$f"
+done
 
 # --- 5. MMS source lists ---------------------------------------------------
 # libsed: automake sources after conditionals, plus LIBOBJS (lib/foo.o).
 lib_srcs=$( { printvar lib_libsed_a_SOURCES
-              printvar lib_libsed_a_LIBADD | tr ' ' '\n' | sed -n 's|^lib/||; s|\.o$|.c|p'
+              printvar lib_libsed_a_LIBADD | tr ' ' '\n' | sed -n 's|^lib/||; s|^libsed_a-||; s|\.o$|.c|p'
             } | tr ' ' '\n' | sed 's|^lib/||' | grep '\.c$' | sort -u)
 src_srcs=$( { printvar sed_sed_SOURCES; printvar nodist_sed_libver_a_SOURCES; } |
             tr ' ' '\n' | sed 's|^sed/||' | grep '\.c$' | sort -u)
