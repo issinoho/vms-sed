@@ -16,14 +16,14 @@ files, and generates the configuration for VSI C.
 
 ## Status
 
-Work in progress: sed builds and passes its smoke test on both architectures; the upstream
-test suite runs under GNV; a PCSI kit follows.
+Work in progress: sed builds and passes its smoke test on both architectures, and the upstream
+test suite runs under GNV with no unexpected failures. A PCSI kit and a release follow.
 
 | | IA64 (OpenVMS V8.4-2L3, VSI C 7.4) | x86-64 (OpenVMS E9.2-4, VSI C 7.7) |
 |---|---|---|
 | Builds with MMS | yes | yes |
 | DCL smoke test | 25/25 | 25/25 |
-| Upstream test suite (75 tests) | not runnable (GNV too old) | in progress |
+| Upstream test suite (75 tests) | not runnable (GNV too old) | 50 pass, 0 unexpected failures |
 | PCSI kit | planned | planned |
 
 See [docs/TESTING.md](docs/TESTING.md) for every skipped and expected-to-fail test.
@@ -41,6 +41,8 @@ See [docs/TESTING.md](docs/TESTING.md) for every skipped and expected-to-fail te
   it). `-i.bak` instead renames the original to `file.txt.bak` (`file^.txt.bak` on an
   ODS-5 disk) and writes the edited file under the original name. The rewritten file is
   Stream_LF, whatever the record format of the original.
+- **The `e` command** (and `s///e`) runs its command through the C library's `system()`,
+  which on OpenVMS means DCL: `sed "1e SHOW TIME"` runs a DCL command, not a shell one.
 - **Exit status:** sed returns POSIX exit codes (0 success, 1 invalid command, 2 missing
   input file, 4 I/O error, or the code given to `q`/`Q`), encoded in `$STATUS` as
   C-facility values. In DCL, `($STATUS .AND. %X7F8) / 8` gives the code.
@@ -80,8 +82,11 @@ cache/ staging/ out/   generated locally, not committed
 | 0008 | tests: `test-mbrtowc` takes the locale from the environment. |
 | 0009 | tests: `CuTmpdir.pm` on VSI Perl (VMS directory template; `$? = 0` in an END block exits 1). |
 | 0010 | tests: `Coreutils.pm` runs each test command with GNV bash rather than DCL, exporting `PATH` and the locale. |
+| 0011 | tests: `compare_` handles `/dev/null` without GNV's `diff`, which cannot open it. |
+| 0012 | `mbrtowc`: decode UTF-8 in gnulib's replacement. The CRTL's UTF-8 `mbrtowc` keeps no state between calls, so a character given one byte at a time never completed, and sed rejected valid scripts. |
+| 0013 | sed: close the in-place temporary file before deleting it at exit; VMS cannot delete an open file, so a failed `sed -i` left `sedXXXXXX` behind. |
 
-Patches 0008–0010 change only the test suite.
+Patches 0008–0011 change only the test suite.
 
 ## How to build
 

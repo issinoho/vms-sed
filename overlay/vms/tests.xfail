@@ -8,3 +8,5 @@ testsuite/posix-mode-s.sh	one check (s///e without --posix) runs its command thr
 testsuite/sandbox.sh	one check runs the e command without --sandbox, through system(), which on OpenVMS is DCL, not /bin/sh
 testsuite/8to7.sh	its input is built from several printf writes per line, and GNV printf ends every write with a newline, so the lines are split; natively the l output is byte-exact (669 bytes)
 testsuite/eval.sh	the e command and s///e run their commands through system(), which on OpenVMS is DCL, not /bin/sh
+testsuite/unbuffered.sh	sed -u 1q must leave the rest of a shared stdin for the next command (wc); VMS processes do not share file offsets (as grep's yesno test)
+testsuite/bsd-wrapper.sh	only bsd.sh's section markers differ: MARK=`expr $MARK + 1` inside a function that has done exec >>$LOG comes back empty under GNV bash; every line sed produced matches bsd.good
