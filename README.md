@@ -185,15 +185,21 @@ vms-grep's README describes the machinery in detail.
 ## Roadmap
 
 1. A port to OpenVMS **Alpha**, alongside IA64 and x86-64.
-2. Next port: **GNU awk** (gawk) ([vms-awk](https://github.com/issinoho/vms-awk)). Released as
-   [v5.4.1-vms1](https://github.com/issinoho/vms-awk/releases/tag/v5.4.1-vms1), built with gawk's own upstream VMS port.
-3. Then **GNU wget**, the same way ([vms-wget](https://github.com/issinoho/vms-wget)).
-4. Then **curl**, the same way ([vms-curl](https://github.com/issinoho/vms-curl)). VSI ships
-   a curl kit, but on VSI's slower release cycle; this port will follow curl's own releases
-   in lock-step.
+2. Offer the patches that are not VMS packaging to sed and gnulib.
 
-Earlier ports: [GNU grep](https://github.com/issinoho/vms-grep) and
-[PCRE2](https://github.com/issinoho/vms-pcre2).
+The family of ports, all for IA64 and x86-64, each following its upstream releases:
+
+| Port | Latest release | |
+|---|---|---|
+| GNU grep — [vms-grep](https://github.com/issinoho/vms-grep) | [v3.12-vms3](https://github.com/issinoho/vms-grep/releases/tag/v3.12-vms3) | with `grep -P` through PCRE2 |
+| PCRE2 — [vms-pcre2](https://github.com/issinoho/vms-pcre2) | [v10.49-vms1](https://github.com/issinoho/vms-pcre2/releases/tag/v10.49-vms1) | the regular-expression library |
+| **GNU sed** (this port) — [vms-sed](https://github.com/issinoho/vms-sed) | [v4.10-vms1](https://github.com/issinoho/vms-sed/releases/tag/v4.10-vms1) | the stream editor |
+| GNU awk (gawk) — [vms-awk](https://github.com/issinoho/vms-awk) | [v5.4.1-vms1](https://github.com/issinoho/vms-awk/releases/tag/v5.4.1-vms1) | built with gawk's own VMS port |
+| zlib — [vms-zlib](https://github.com/issinoho/vms-zlib) | [v1.3.2-vms1](https://github.com/issinoho/vms-zlib/releases/tag/v1.3.2-vms1) | the compression library |
+| curl — [vms-curl](https://github.com/issinoho/vms-curl) | [v8.22.0-vms1](https://github.com/issinoho/vms-curl/releases/tag/v8.22.0-vms1) | alongside VSI's curl kit, following curl's own releases |
+| GNU Wget — [vms-wget](https://github.com/issinoho/vms-wget) | [v1.25.0-vms2](https://github.com/issinoho/vms-wget/releases/tag/v1.25.0-vms2) | the web retriever |
+| GNU m4 — [vms-m4](https://github.com/issinoho/vms-m4) | [v1.4.21-vms1](https://github.com/issinoho/vms-m4/releases/tag/v1.4.21-vms1) | the macro processor |
+| GNU Bison — [vms-bison](https://github.com/issinoho/vms-bison) | [v3.8.2-vms1](https://github.com/issinoho/vms-bison/releases/tag/v3.8.2-vms1) | runs GNU m4 |
 
 ## Artwork
 
