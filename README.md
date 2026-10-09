@@ -4,6 +4,8 @@
 
 # GNU sed for OpenVMS
 
+[![Downloads](https://img.shields.io/github/downloads/issinoho/vms-sed/total?label=downloads)](https://github.com/issinoho/vms-sed/releases)
+
 A port of current GNU sed to OpenVMS on **IA64** and **x86-64**, kept as a thin layer over the
 official GNU release so that it can follow upstream releases with minimal effort. This port starts
 from **GNU sed 4.10**. It is built with exactly the same methods as
