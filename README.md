@@ -6,10 +6,10 @@
 
 [![Release](https://img.shields.io/github/v/release/issinoho/vms-sed?label=release)](https://github.com/issinoho/vms-sed/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/issinoho/vms-sed/total?label=downloads)](https://github.com/issinoho/vms-sed/releases)
-![OpenVMS](https://img.shields.io/badge/OpenVMS-IA64%20%7C%20x86--64-blue)
+![OpenVMS](https://img.shields.io/badge/OpenVMS-IA64%20%7C%20x86--64%20%7C%20Alpha-blue)
 [![License](https://img.shields.io/github/license/issinoho/vms-sed)](COPYING)
 
-A port of current GNU sed to OpenVMS on **IA64** and **x86-64**, kept as a thin layer over the
+A port of current GNU sed to OpenVMS on **IA64**, **x86-64** and **Alpha**, kept as a thin layer over the
 official GNU release so that it can follow upstream releases with minimal effort. This port starts
 from **GNU sed 4.10**. It is built with exactly the same methods as
 [GNU grep for OpenVMS](https://github.com/issinoho/vms-grep), and its tools are copies of grep's. It
@@ -37,6 +37,12 @@ files, and generates the configuration for VSI C.
 | DCL smoke test | 25/25 | 25/25 |
 | Upstream test suite (75 tests) | not runnable (GNV too old) | 50 pass, 0 unexpected failures |
 | PCSI kit ([v4.10-vms1](https://github.com/issinoho/vms-sed/releases/tag/v4.10-vms1)) | `ISSINOHO-I64VMS-SED-V0410-1-1.PCSI` | `ISSINOHO-X86VMS-SED-V0410-1-1.PCSI` |
+
+**Alpha (v4.10-vms2, a dedicated Alpha release; IA64 and x86-64 stay on vms1):** built on
+OpenVMS Alpha V8.4-2L2 with VSI C V7.4-002 (no warnings, only informational messages); DCL
+smoke test 25/25; kit `ISSINOHO-AXPVMS-SED-V0410-2-1.PCSI`. The Alpha shares the IA64-derived
+`config.h`, checked by a compile-and-link probe on the node (see `vms-manual.site`). The
+upstream suite needs GNV, which the Alpha node does not have.
 
 See [docs/TESTING.md](docs/TESTING.md) for every skipped and expected-to-fail test.
 
@@ -138,9 +144,10 @@ you can also copy it to VMS any way you like and build there by hand.
 
 - **Linux host:** git, bash, python3, gcc and make (for the host-side `configure` run),
   curl and gpg. ssh/sftp too, if you want the automated route.
-- **OpenVMS IA64 or x86-64:** VSI C and MMS. OpenSSH for the automated route. GNV (bash
+- **OpenVMS IA64, x86-64 or Alpha:** VSI C and MMS. OpenSSH for the automated route. GNV (bash
   4.4 and coreutils, x86-64) and VSI Perl for the upstream test suite. Tested on IA64
-  V8.4-2L3 with VSI C 7.4, and on x86-64 E9.2-4 with VSI C 7.7.
+  V8.4-2L3 with VSI C 7.4, on x86-64 E9.2-4 with VSI C 7.7, and on Alpha V8.4-2L2 with
+  VSI C V7.4-002 (smoke test only: no GNV there).
 
 ### 1. Prepare the source tree (Linux)
 
@@ -163,7 +170,7 @@ too, for the test suite). Then, on VMS:
 
 ```
 $ SET DEFAULT dev:[dir.SED-4_10]
-$ @[.VMS]BUILD                    ! -> [.BIN_IA64]SED.EXE or [.BIN_X86_64]SED.EXE
+$ @[.VMS]BUILD                    ! -> [.BIN_IA64]SED.EXE, [.BIN_X86_64]SED.EXE or [.BIN_ALPHA]SED.EXE
 $ @[.VMS]TEST_SMOKE               ! quick functional test (25 checks)
 $ @[.VMS.KIT]MAKE_KIT             ! PCSI kit -> [.KIT_<arch>]
 ```
@@ -192,13 +199,13 @@ As for grep: GNU `configure` runs on the Linux host in cross mode, and every com
 and preprocessor test is answered by VSI C on a VMS node (`tools/vms_configure.sh`, once
 per upstream release). The answers are committed in
 `overlay/vms/config/configure-<node>.cache` (identical for IA64 and x86-64 apart from the
-CPU name); `overlay/vms/config/vms-manual.site` holds the hand-settled ones, each with a
+CPU name; the Alpha shares the IA64 answers, see `vms-manual.site`); `overlay/vms/config/vms-manual.site` holds the hand-settled ones, each with a
 reason. `tools/prepare.sh` replays them offline and records the result in `snapshot/`.
 vms-grep's README describes the machinery in detail.
 
 ## Roadmap
 
-1. A port to OpenVMS **Alpha**, alongside IA64 and x86-64.
+1. ~~A port to OpenVMS **Alpha**, alongside IA64 and x86-64.~~ Done: see Status (Alpha kit, patch level 2).
 2. Offer the patches that are not VMS packaging to sed and gnulib.
 
 The family of ports, all for IA64 and x86-64 (MariaDB: x86-64 only), each following its upstream releases:

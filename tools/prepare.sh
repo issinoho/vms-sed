@@ -144,7 +144,9 @@ if [ -f "$kit/sed.pcsi\$desc_template" ]; then
         subst $base "" < "$kit/sed.pcsi\$text_template" > "$kit/SED-$base.PCSI\$TEXT"
     done
     rm -f "$kit/sed.pcsi\$desc_template" "$kit/sed.pcsi\$text_template"
-    subst "" "IA64 and x86-64" < "$kit/readme.vms" > "$kit/README.VMS"; rm -f "$kit/readme.vms"
+    subst "" "IA64 and x86-64" < "$kit/readme.vms" > "$kit/README.VMS"
+    # The Alpha kit has its own README (the others are unchanged, so their kits stay as released).
+    subst "" "Alpha" < "$kit/readme.vms" > "$kit/README_AXPVMS.VMS"; rm -f "$kit/readme.vms"
     mkdir -p "$kit/doc"
     cp "$stage/doc/sed.1" "$kit/doc/SED.1"
     groff -mandoc -Tascii -P-cbou "$stage/doc/sed.1" > "$kit/doc/SED.TXT" 2>/dev/null

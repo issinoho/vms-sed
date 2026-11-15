@@ -22,3 +22,26 @@ gl_cv_onwards_func_mempcpy=yes
 # open() cannot open a directory by its Unix name on VMS (ENOENT); use
 # gnulib's dummy-fd fallback (a patch extends it to ENOENT).
 gl_cv_func_open_directory_works=no
+
+# OpenVMS Alpha (V8.4-2L2, VSI C V7.4-002): the staged config.h, generated from the IA64
+# answers (configure-ia64.cache), is shared by all three architectures.  No full configure
+# was run on the Alpha (for vms-grep it took 111 minutes and reproduced the IA64 cache apart
+# from the CPU ABI lines, gl_cv_host_cpu_c_abi*, which this config.h does not use).  Instead
+# a probe was compiled and linked on the node with the real compiler qualifiers
+# (CC_QUAL/CC_DEFS in sources.mms) against the 206 compile-time answers in the cache that
+# configure settles with the compiler:
+#   - 58 ac_cv_header_* answers: #include each header.  The 34 "yes" headers are present;
+#     of the 24 "no" headers (error.h, obstack.h, sched.h, stdio_ext.h, uchar.h, ...) none is
+#     found.
+#   - 88 ac_cv_func_* answers: each function referenced by address and linked.  All 61 "yes"
+#     functions are declared and link (6 are macros, e.g. mempcpy) and all 27 "no" functions
+#     are undeclared.
+#   - 60 ac_cv_have_decl_* answers: all 34 "yes" are declared (8 as macros) and all 26 "no"
+#     are undeclared.
+# That is 205 of 206 identical.  The one difference is sched_yield: the Alpha has it as a
+# macro in <pthread.h> where the cache says "not declared"; nothing in sed uses sched_yield
+# (--disable-threads), and the Alpha build compiles cleanly with it.
+# A short run-time probe also agrees with the cached run-time answers (malloc(0) and
+# realloc(NULL,0) return non-NULL, realloc(p,0) returns NULL, snprintf is C99, the C locale's
+# mbrtowc accepts a high byte, open() of a directory fails with ENOENT, long and pointers are
+# 32 bits, off_t 64).  Same conclusion as for grep: one config.h for IA64, x86-64 and Alpha.

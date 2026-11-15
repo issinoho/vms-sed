@@ -4,8 +4,8 @@ There are two layers:
 
 | Layer | Runs on | Needs | Command (host) |
 |---|---|---|---|
-| DCL smoke test, 25 checks | IA64, x86-64 | nothing extra | `tools/test.sh <node>` |
-| Upstream test suite, 75 tests | x86-64 | GNV (bash 4.4 + coreutils), VSI Perl | `tools/gnvtest.sh x86` |
+| DCL smoke test, 25 checks | IA64, x86-64, Alpha | nothing extra | `tools/test.sh <node>` |
+| Upstream test suite, 75 tests | x86-64 | GNV (bash 4.4 + coreutils), VSI Perl (neither on Alpha) | `tools/gnvtest.sh x86` |
 
 Failures that look environmental are re-run **natively** before they are classified: a
 VSI Perl script writes the exact input bytes, runs our `SED.EXE` through a DCL `PIPE`, and
@@ -16,6 +16,14 @@ that way, on IA64.
 The main commands and options, exit statuses as seen by DCL, `-i` and `-i.bak`, the `w`
 command, a line containing byte 0xFF, and output to a DCL `PIPE` (each line must arrive as
 one record). It also runs against an installed kit.
+
+## Alpha
+
+The Alpha node has neither GNV nor Perl, so only the DCL smoke test runs there (25/25); none
+of sed's own test procedures needs Perl, so no fallback runner was needed. The upstream
+suite is not run there. The Alpha shares the IA64-derived `config.h`: a probe compiled and
+linked on the node with the real compiler qualifiers agreed with 205 of the cache's 206
+compile-time answers (details in `overlay/vms/config/vms-manual.site`).
 
 ## Upstream suite under GNV (`vms/run_gnv_tests.sh`, `vms/run_gnv_tests.com`)
 This mirrors `testsuite/local.mk`'s `TESTS_ENVIRONMENT`: tests run from the top of the tree
@@ -54,10 +62,10 @@ None of these is a sed fault; each reason was verified.
 | bsd-wrapper.sh | Only bsd.sh's section markers differ: MARK=`expr $MARK + 1` inside a function that has done exec >>$LOG comes back empty under GNV bash; every line sed produced matches bsd.good |
 
 ## Current results (sed 4.10)
-| Suite | IA64 | x86-64 |
-|---|---|---|
-| DCL smoke test | 25/25 | 25/25 |
-| Upstream suite | (no usable GNV) | 50 pass, 0 unexpected failures, 11 expected failures, 10 skipped, 4 excluded |
+| Suite | IA64 | x86-64 | Alpha |
+|---|---|---|---|
+| DCL smoke test | 25/25 | 25/25 | 25/25 |
+| Upstream suite | (no usable GNV) | 50 pass, 0 unexpected failures, 11 expected failures, 10 skipped, 4 excluded | (no GNV) |
 
 The skips: five tests need valgrind; one is "very expensive" (skipped upstream unless
 `RUN_VERY_EXPENSIVE_TESTS=yes`); the rest need SELinux or locales VMS does not ship

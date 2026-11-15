@@ -1,7 +1,7 @@
-! DESCRIP.MMS - build GNU sed for OpenVMS (IA64, x86-64)
+! DESCRIP.MMS - build GNU sed for OpenVMS (IA64, x86-64, Alpha)
 !
 ! Run from the top of the prepared source tree via [.VMS]BUILD.COM, which
-! passes ARCH (IA64 or X86_64) and creates the output directories.
+! passes ARCH (IA64, X86_64 or ALPHA) and creates the output directories.
 ! Source lists and per-object rules come from [.VMS]SOURCES.MMS, generated
 ! by tools/prepare.sh on the host.
 
